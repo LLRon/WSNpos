@@ -24,9 +24,9 @@ FORMS    += mainwindow.ui
 
 DISTFILES +=
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../x64/release/ -lSensor_Locating
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../x64/debug/ -lSensor_Locating
-else:unix: LIBS += -L$$PWD/../x64/ -lSensor_Locating
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../release/ -lSensor_Locating
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../Debug/ -lSensor_Locating
+else:unix: LIBS += -L$$PWD/../ -lSensor_Locating
 
 INCLUDEPATH += $$PWD/../master
 DEPENDPATH += $$PWD/../master

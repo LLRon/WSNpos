@@ -16,7 +16,17 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();
+    void on_displayButton_clicked();
+
+    void on_selectSource_clicked();
+
+    void on_selectResult_clicked();
+
+    void on_selectAlgorithmButton_clicked();
+
+    void on_QueryButton_clicked();
+
+    void on_buildGraph_clicked();
 
 private:
     Ui::MainWindow *ui;
