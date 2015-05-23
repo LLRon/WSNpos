@@ -1,0 +1,8 @@
+build-WSNPos-Desktop_Qt_5_4_1_MSVC2013_64bit-Debug/
+ipch/
+Release/
+TestDll/
+x64/
+master/Debug/
+master/x64/
+Sensor_Locating.opensdf
