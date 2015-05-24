@@ -4,9 +4,9 @@
 #include <limits>
 #include <queue>
 
-vector<string> getValues(string data);
+vector<string> getValues(const string &data);
 
-Graph::Graph() : maxId(0)
+Graph::Graph()
 {
 }
 
@@ -15,25 +15,24 @@ Graph::~Graph()
 {
 }
 
-void Graph::buildNode(string data)
+void Graph::buildNode(const string &data)
 {
 	vector<string> &values = getValues(data);
 	Node p;
 
-	p.id = stoi(values[0]);
+	p.name = stoi(values[0]);
 	p.x = stod(values[1]);
 	p.y = stod(values[2]);
 	p.cx = p.x;
 	p.cy = p.y;
 	p.isAnchor = values[3] == "1";
 
-	// record max id
-	maxId = max(maxId, p.id);
-
 	points.push_back(p);
+	// id is it's index
+	points.back().id = points.size() - 1;
 }
 
-void Graph::buildEdge(string data)
+void Graph::buildEdge(const string &data)
 {
 	vector<string> &values = getValues(data);
 	Node &p1 = points[stoi(values[0]) - 1];
@@ -44,7 +43,7 @@ void Graph::buildEdge(string data)
 	p2.addNeighbour(p1, d);
 }
 
-vector<string> getValues(string data) {
+vector<string> getValues(const string &data) {
 	istringstream ss(data);
 	string value;
 	vector<string> values;
@@ -56,7 +55,7 @@ vector<string> getValues(string data) {
 	return values;
 }
 
-void Graph::buildFromFile(ifstream &pointData, ifstream &edgeData) {
+GRAPHDLL_API void Graph::buildFromFile(ifstream &pointData, ifstream &edgeData) {
 	for (std::string line; std::getline(pointData, line); ) {
 		buildNode(line);
 	}
@@ -66,22 +65,23 @@ void Graph::buildFromFile(ifstream &pointData, ifstream &edgeData) {
 	}
 }
 
-void Graph::shortestPath_Floyd()
+GRAPHDLL_API void Graph::shortestPath_Floyd()
 {
-	minimumPathLength.resize(maxId + 1);
+	if (minimumPathLength.size() == points.size()) {
+		return;
+	}
+
+	minimumPathLength.resize(points.size());
 	for (auto &p1 : points) {
-		minimumPathLength[p1.getId()] = vector<double>(maxId + 1, numeric_limits<double>::max());;
+		minimumPathLength[p1.getId()] = vector<double>(points.size(), numeric_limits<double>::max());;
 		// self distance is 0
 		minimumPathLength[p1.getId()][p1.getId()] = 0;
 	}
 
-	int v, w, k;
-	int graphSize = points.size();
-
 	for (auto &p : points)
 	{
-		for (auto &pair : p.distance) {
-			int neighbour = pair.first->getId(),
+		for (auto &pair : p.neighbourDistance) {
+			int neighbour = pair.first,
 				pid = p.getId();
 			// the adjacent point has their immediate distance
 			minimumPathLength[pid][neighbour] = 1;
@@ -108,11 +108,11 @@ void Graph::shortestPath_Floyd()
 }
 
 
-void Graph::shortestPath_Dijest()
+GRAPHDLL_API void Graph::shortestPath_Dijest()
 {
 	for (auto &p : points) {
-		vector<double> dist(maxId + 1, numeric_limits<double>::max());
-		set<Node*> seen;
+		vector<double> dist(points.size(), numeric_limits<double>::max());
+		set<int> seen;
 		deque<Node*> neighbours;
 
 		neighbours.push_back(&p);
@@ -121,22 +121,37 @@ void Graph::shortestPath_Dijest()
 			Node *current = neighbours.front();
 			neighbours.pop_front();
 
-			for (auto &nextNeighbour : current->distance) {
+			for (auto &nextNeighbour : current->neighbourDistance) {
 				if (nextNeighbour.second + dist[current->getId()] <
-					dist[nextNeighbour.first->getId()]) {
-					dist[nextNeighbour.first->getId()] = nextNeighbour.second + dist[current->getId()];
+					dist[nextNeighbour.first]) {
+					dist[nextNeighbour.first] = nextNeighbour.second + dist[current->getId()];
 				}
 				if (seen.find(nextNeighbour.first) == seen.end()) {
 					seen.insert(nextNeighbour.first);
-					neighbours.push_back(nextNeighbour.first);
+					neighbours.push_back(&points[nextNeighbour.first]);
 				}
 			}
 		}
 	}
 }
 
+GRAPHDLL_API vector<Node>::size_type Graph::size()
+{
+	return points.size();
+}
 
-Vector2d trilateration(Matrix<double, Dynamic, 2> &a, VectorXd &b) {
+GRAPHDLL_API Node& Graph::getPoint(int id)
+{
+	try {
+		return points[id];
+	}
+	catch (exception e) {
+		printf(e.what());
+	}
+}
+
+
+GRAPHDLL_API Vector2d trilateration(Matrix<double, Dynamic, 2> &a, VectorXd &b) {
 
 	auto temp = a.transpose() * a;
 
@@ -147,14 +162,14 @@ Vector2d trilateration(Matrix<double, Dynamic, 2> &a, VectorXd &b) {
 
 
 // solving matrix equation: Ax = b
-Vector2d calculatePoint(Node &node, vector<Node*> anchors) {
+GRAPHDLL_API Vector2d calculatePoint(Node &node, vector<Node*> anchors) {
 	Matrix<double, Dynamic, 2> a(anchors.size() - 1, 2);
 
 	double x1, y1, d1;
 	auto p1 = *anchors.begin();
 	x1 = p1->getX();
 	y1 = p1->getY();
-	d1 = node.distance.at(p1);
+	d1 = node.neighbourDistance[p1->getId()];
 
 	// for matrix b
 	double fixed = d1 * d1 - x1 * x1 - y1* y1;
@@ -179,7 +194,7 @@ Vector2d calculatePoint(Node &node, vector<Node*> anchors) {
 			continue;
 		}
 
-		double d = node.distance.at(*it);
+		double d = node.neighbourDistance[(*it)->getId()];
 		auto node = (*it);
 
 		b(i) = d * d - node->getX() * node->getX() -
@@ -191,7 +206,7 @@ Vector2d calculatePoint(Node &node, vector<Node*> anchors) {
 	return trilateration(a, b);
 }
 
-void recursiveTri(Graph &graph) {
+GRAPHDLL_API void recursiveTri(Graph &graph) {
 	queue<Node *> tobeCal;
 
 	for (auto &p : graph.points) {
@@ -208,10 +223,10 @@ void recursiveTri(Graph &graph) {
 
 		vector<Node *> anchors;
 
-		for (auto it = node->distance.cbegin();
-			it != node->distance.cend(); it++) {
-			if (it->first->isAnchor) {
-				anchors.push_back(it->first);
+		for (auto it = node->neighbourDistance.cbegin();
+			it != node->neighbourDistance.cend(); it++) {
+			if (graph.points[it->first].isAnchor) {
+				anchors.push_back(&graph.points[it->first]);
 			}
 		}
 
@@ -229,7 +244,7 @@ void recursiveTri(Graph &graph) {
 	}
 }
 
-void dvhop(Graph &graph) {
+GRAPHDLL_API void dvhop(Graph &graph) {
 
 	vector<Node *> anchors;
 
@@ -279,7 +294,7 @@ void dvhop(Graph &graph) {
 
 		p.correction = min->correction;
 
-		p.distance.clear();
+		p.neighbourDistance.clear();
 
 		for (auto &anchor : anchors) {
 			p.addNeighbour(*anchor, p.correction * graph.minimumPathLength[p.getId()][anchor->getId()]);
@@ -289,40 +304,5 @@ void dvhop(Graph &graph) {
 
 		p.cx = ret(0);
 		p.cy = ret(1);
-	}
-}
-
-void bfs(Graph &graph, function<void(const Node&)> &task) {
-
-	deque<const Node*> stack;
-	set < const Node*> unseen;
-
-	for (auto itor = graph.points.cbegin(); itor != graph.points.cend(); itor++) {
-		unseen.insert(&(*itor));
-	}
-
-	const Node *current;
-
-	while (unseen.size() > 0) {
-		stack.push_back(*unseen.begin());
-		unseen.erase(unseen.begin());
-		while (stack.size() > 0) {
-			current = stack.front();
-			stack.pop_front();
-
-			task(*current);
-
-			for (auto itor = current->distance.cbegin(); itor != current->distance.cend(); itor++) {
-				set<const Node*>::iterator found = find_if(unseen.cbegin(),
-					unseen.cend(),
-					[itor](const Node* node){return node->getId() == itor->first->getId(); }
-				);
-
-				if (found != unseen.cend()) {
-					stack.push_back(itor->first);
-					unseen.erase(found);
-				}
-			}
-		}
 	}
 }

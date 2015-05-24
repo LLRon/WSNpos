@@ -5,7 +5,5 @@ TestDll/
 x64/
 master/Debug/
 master/x64/
-Sensor_Locating.opensdf
 build-WSNPos-Desktop_Qt_5_4_1_MSVC2012_OpenGL_32bit-Debug/
-interface/WSNPos.pro
-interface/WSNPos.pro.user
+Sensor_Locating.opensdf

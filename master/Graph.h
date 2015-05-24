@@ -24,12 +24,16 @@ class Graph
 	// Broad-First-Search algorithm
 	// The second parameter should be a functor/pointer to function
 	// or a lambda
-	GRAPHDLL_API friend void bfs(Graph, function<void(const Node&)> &);
 	GRAPHDLL_API friend void recursiveTri(Graph &);
 	GRAPHDLL_API friend void dvhop(Graph &);
 public:
 	GRAPHDLL_API Graph();
 	GRAPHDLL_API ~Graph();
+	GRAPHDLL_API Graph(Graph &);
+
+	GRAPHDLL_API Node& getPoint(int id);
+
+	GRAPHDLL_API vector<Node>::size_type size();
 
 	// build the graph using files
 	GRAPHDLL_API void buildFromFile(ifstream &pointData, ifstream &edgeData);
@@ -40,19 +44,15 @@ public:
 	// calculate the distance from every point to the anchors
 	GRAPHDLL_API void shortestPath_Dijest();
 
-	// store all the points of the graph
+private:
+	// store all the points of the graph. assuming it never changes
 	vector<Node> points;
 
-private:
-
 	// build up a node with string data
-	void buildNode(string);
+	void buildNode(const string&);
 
 	// build up edges between nodes
-	void buildEdge(string);
-
-	// record the maximum id
-	int maxId;
+	void buildEdge(const string&);
 
 	// distance between every two nodes
 	vector<vector<double>> minimumPathLength;
@@ -61,6 +61,6 @@ private:
 
 GRAPHDLL_API Vector2d trilateration(Matrix<double, Dynamic, 2> &a, VectorXd &b);
 GRAPHDLL_API Vector2d calculatePoint(Node &node, vector<Node*> anchors);
-GRAPHDLL_API void bfs(Graph graph, function<void(const Node&)> &task);
+GRAPHDLL_API void bfs(Graph &graph, function<void(const Node&)> &task);
 GRAPHDLL_API void recursiveTri(Graph &);
 GRAPHDLL_API void dvhop(Graph &);

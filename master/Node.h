@@ -17,18 +17,19 @@ public:
 	Node(const Node&);
 	~Node();
 
+	//  add a neighbor to current point
 	void addNeighbour(Node &p, double dist);
 	bool operator<(Node) const;
-	bool operator<(Node *) const;
-	bool operator==(Node *) const;
 
 	int getId() const;
 	double getX() const;
 	double getY() const;
 
 	bool isAnchor;
-	std::map<Node*, double> distance;
 
+	std::map<int, double> neighbourDistance;
+
+	// computed x, y
 	double cx;
 	double cy;
 
@@ -38,6 +39,9 @@ public:
 	void displayDifference(std::ostream &);
 
 private:
+
+	int name;
+	// for query
 	int id;
 	double x;
 	double y;

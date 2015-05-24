@@ -9,13 +9,14 @@ Node::Node(int id, double x, double y):id(id), x(x), y(y)
 
 // copy constructor
 Node::Node(const Node &node) {
+
 	id = node.id;
 	x = node.x;
 	y = node.y;
 	cx = node.cx;
 	cy = node.cy;
 	isAnchor = node.isAnchor;
-	distance = node.distance;
+	neighbourDistance = node.neighbourDistance;
 }
 
 
@@ -24,17 +25,12 @@ Node::~Node()
 }
 
 void Node::addNeighbour(Node &p, double dist) {
-	distance[&p] = dist;
+	neighbourDistance[p.id] = dist;
 }
 
 bool Node::operator<(Node node) const
 {
 	return id < node.id;
-}
-
-bool Node::operator<(Node *node) const
-{
-	return id < node->id;
 }
 
 double Node::getY() const
@@ -50,11 +46,6 @@ int Node::getId() const
 double Node::getX() const
 {
 	return x;
-}
-
-bool Node::operator==(Node *node) const
-{
-	return id == node->id;
 }
 
 // 显示该节点的误差，计算位置和真实位置

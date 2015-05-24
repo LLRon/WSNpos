@@ -15,7 +15,7 @@ void addPoint(QGraphicsScene tempScene);
 
 QString sourcePath_1;
 QString sourcePath_2;
-Graph g;
+Graph g, origin;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -30,11 +30,11 @@ MainWindow::~MainWindow()
 }
 
 //添加传感器点
-void addPoint(const vector<double> &x, const vector<double> y,QGraphicsScene *tempScene,QPen pen,QBrush brush){
+void addPoint(const vector<double> &x, const vector<double> &y,QGraphicsScene *tempScene,QPen &pen,QBrush &brush){
 
 
     for(int i = 0;i < x.size() ;i++){
-    tempScene->addEllipse(x[i],y[i],10,10,pen,brush);
+        tempScene->addEllipse(x[i],y[i],10,10,pen,brush);
     }
 
 }
@@ -60,7 +60,10 @@ void MainWindow::on_buildGraph_clicked()
 {
     ifstream a(sourcePath_1.toStdString());
     ifstream b(sourcePath_2.toStdString());
-    g.buildFromFile(a,b);
+
+    origin.buildFromFile(a,b);
+    origin.shortestPath_Floyd();
+
     QMessageBox::about(0,tr("Build:"),tr("Success!"));
 }
 //选择算法事件响应
@@ -76,6 +79,9 @@ void MainWindow::on_selectAlgorithmButton_clicked()
         QMessageBox::about(0,tr("Warning:"),tr("Please Choose Algorithm!"));
         return;
     }
+
+    g = origin;
+
     //选择多变迭代
     if(ui->recursiveButton->isChecked()){
         recursiveTri(g);
@@ -91,7 +97,6 @@ void MainWindow::on_selectAlgorithmButton_clicked()
     }
     //选择DV_HOP
     if(ui->DV_HOPButton->isChecked()){
-        g.shortestPath_Floyd();
         dvhop(g);
         QMessageBox::about(0,tr("DV_HOP:"),tr("Finish!"));
     }
@@ -106,7 +111,7 @@ void MainWindow::on_displayButton_clicked()
     QGraphicsScene *scene = new QGraphicsScene();
     scene->setSceneRect(0,0,400,400);//inti QGraphicsScene
 
-    if(g.points.size()==0){
+    if(g.size()==0){
         QMessageBox::about(0,tr("Warning:"),tr("No Point Information!"));
         return;
     }
@@ -117,7 +122,8 @@ void MainWindow::on_displayButton_clicked()
     }
 
     vector<double> x, y, cx, cy;
-    for(auto &p : g.points) {
+    for(int i = 0; i < g.size(); i ++) {
+        Node &p = g.getPoint(i);
         x.push_back(p.getX() * 2);
         y.push_back(p.getY() * 2);
         cx.push_back(p.cx * 2);
@@ -146,13 +152,13 @@ void MainWindow::on_displayButton_clicked()
         pen.setColor(Qt::green);
         brush.setColor(QColor(0xff,0x00,0x00,0x80));//red
 
-        addPoint(x,y,scene,pen,brush);
+        addPoint(cx,cy,scene,pen,brush);
 
 
         pen.setColor(Qt::yellow);
         brush.setColor(QColor(0x00,0x00,0xff,0x80));//blue
 
-        addPoint(cx,cy,scene,pen,brush);
+        addPoint(x,y,scene,pen,brush);
 
     }
 
@@ -169,17 +175,15 @@ void MainWindow::on_displayButton_clicked()
 //查询传感器点位置事件响应
 void MainWindow::on_QueryButton_clicked()
 {
-    QPen pen(Qt:: green);
-    QBrush brush(QColor(0xff,0xff,0xff,0x80));//result point is red
-    QGraphicsScene *scene = new QGraphicsScene();
+    QPen pen(Qt::red);
+    QBrush brush(QColor(0xff,0xff,0x00,0xff));//result point is red
+    QGraphicsScene *scene =  ui->graphicsView->scene();
     int pointNum;
     vector<double> x, y, cx, cy;
     double diffx,diffy;
     double diffsum = 0;
 
-    scene = ui->graphicsView->scene();
-
-    if(g.points.size()==0){
+    if(g.size()==0){
         QMessageBox::about(0,tr("Warning:"),tr("No Point Information!"));
         ui->pointNum->clear();
         return;
@@ -192,7 +196,8 @@ void MainWindow::on_QueryButton_clicked()
         return;
     }
 
-    for(auto &p : g.points) {
+    for(int i = 0; i < g.size(); i ++) {
+        Node &p = g.getPoint(i);
         if(p.getId() == pointNum -1){
         x.push_back(p.getX() * 2);
         y.push_back(p.getY() * 2);
@@ -213,7 +218,7 @@ void MainWindow::on_QueryButton_clicked()
 
     addPoint(cx,cy,scene,pen,brush);
 
-    brush.setColor(QColor(0x00,0xff,0x00,0x80));
+    brush.setColor(QColor(0x00,0xff,0x00,0xff));
     addPoint(x,y,scene,pen,brush);
     cout<<pointNum<<endl;
 }
