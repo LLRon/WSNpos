@@ -3,6 +3,7 @@
 #include <fstream>
 #include <limits>
 #include <queue>
+#include <iostream>
 
 vector<string> getValues(const string &data);
 
@@ -152,12 +153,7 @@ GRAPHDLL_API Node& Graph::getPoint(int id)
 
 
 GRAPHDLL_API Vector2d trilateration(Matrix<double, Dynamic, 2> &a, VectorXd &b) {
-
-	auto temp = a.transpose() * a;
-
-	Vector2d ret = temp.inverse() * a.transpose() * b;
-
-	return ret;
+	return (a.transpose() * a).inverse() * a.transpose() * b;
 }
 
 
@@ -298,6 +294,76 @@ GRAPHDLL_API void dvhop(Graph &graph) {
 
 		for (auto &anchor : anchors) {
 			p.addNeighbour(*anchor, p.correction * graph.minimumPathLength[p.getId()][anchor->getId()]);
+		}
+
+		auto ret = calculatePoint(p, anchors);
+
+		p.cx = ret(0);
+		p.cy = ret(1);
+	}
+}
+
+GRAPHDLL_API void pdm(Graph &graph)
+{
+
+	vector<Node *> anchors;
+
+	// find out all the landmarks
+	for (auto &p : graph.points) {
+		if (p.isAnchor) {
+			anchors.push_back(&p);
+		}
+	}
+	
+	// P is the proximity matrix and
+	// T is the geographic matrix
+	MatrixXd P(anchors.size(), anchors.size());
+	MatrixXd L(anchors.size(), anchors.size());
+
+
+	// calculate the correction of landmarks
+	for (int i = 0; i < anchors.size(); i ++) {
+		auto &a1 = anchors[i];
+		for (int j = 0; j < anchors.size(); j++) {
+
+			auto &a2 = anchors[j];
+
+			if (a1 != a2) {
+				double dx = (a1->getX() - a2->getX()),
+					dy = (a1->getY() - a2->getY());
+
+				// geographic distance
+				L(i, j) = sqrtl(dx*dx + dy*dy);
+				// proximity matrix here assumed to be mini-hop
+				P(i, j) = graph.minimumPathLength[a1->getId()][a2->getId()];
+			}
+			else {
+				L(i, j) = 0;
+				P(i, j) = 0;
+			}
+		}
+	}
+
+	MatrixXd T = (P.jacobiSvd(ComputeThinU | ComputeThinV).solve(L.transpose())).transpose();
+	
+	for (auto &p : graph.points) {
+
+		if (p.isAnchor) {
+			continue;
+		}
+
+		VectorXd proximity(anchors.size());
+
+		for (int i = 0; i < anchors.size(); i ++) {
+			proximity(i) = graph.minimumPathLength[p.getId ()][anchors[i]->getId ()];
+		}
+
+		VectorXd geography = T * proximity;
+
+		p.neighbourDistance.clear();
+
+		for (int i = 0; i < anchors.size(); i++) {
+			p.addNeighbour(*anchors[i], geography(i));
 		}
 
 		auto ret = calculatePoint(p, anchors);

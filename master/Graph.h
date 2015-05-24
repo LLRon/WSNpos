@@ -24,6 +24,7 @@ class Graph
 	// Broad-First-Search algorithm
 	// The second parameter should be a functor/pointer to function
 	// or a lambda
+	GRAPHDLL_API friend void pdm(Graph &);
 	GRAPHDLL_API friend void recursiveTri(Graph &);
 	GRAPHDLL_API friend void dvhop(Graph &);
 public:
@@ -64,3 +65,4 @@ GRAPHDLL_API Vector2d calculatePoint(Node &node, vector<Node*> anchors);
 GRAPHDLL_API void bfs(Graph &graph, function<void(const Node&)> &task);
 GRAPHDLL_API void recursiveTri(Graph &);
 GRAPHDLL_API void dvhop(Graph &);
+GRAPHDLL_API void pdm(Graph &);

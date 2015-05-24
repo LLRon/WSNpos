@@ -89,7 +89,8 @@ void MainWindow::on_selectAlgorithmButton_clicked()
     }
     //选择PDM
     if(ui->PDMButton->isChecked()){
-
+        pdm(g);
+        QMessageBox::about(0,tr("PDM:"),tr("Finish!"));
     }
     //选择MDS
     if(ui->MDSButton->isChecked()){
