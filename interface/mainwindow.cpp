@@ -12,7 +12,7 @@
 using namespace std;
 
 void addPoint(QGraphicsScene tempScene);
-
+void addPoint(const vector<double> &x, const vector<double> &y,QGraphicsScene *tempScene,QPen &pen,QBrush &brush);
 QString sourcePath_1;
 QString sourcePath_2;
 Graph g, origin;
@@ -34,9 +34,18 @@ void addPoint(const vector<double> &x, const vector<double> &y,QGraphicsScene *t
 
 
     for(int i = 0;i < x.size() ;i++){
-        tempScene->addEllipse(x[i],y[i],10,10,pen,brush);
+        tempScene->addEllipse(x[i]-5,y[i]-5,10,10,pen,brush);
     }
 
+}
+//添加偏离线
+void addmyLine(const vector<double> &cx, const vector<double> &cy,const vector<double> &x, const vector<double> &y,QGraphicsScene *tempScene){
+
+    QPen pen(Qt::black);
+    pen.setWidth(1);
+    for(int i = 0;i < x.size() ;i++){
+        tempScene->addLine(cx[i],cy[i],x[i],y[i],pen);
+    }
 }
 
 //选择源文件按钮事件响应
@@ -107,17 +116,17 @@ void MainWindow::on_selectAlgorithmButton_clicked()
 void MainWindow::on_displayButton_clicked()
 {
     //inti pen and brush
-    QPen pen(Qt:: green);
+    QPen pen(Qt::black);
     QBrush brush(Qt::red);//result point is red
     QGraphicsScene *scene = new QGraphicsScene();
-    scene->setSceneRect(0,0,400,400);//inti QGraphicsScene
+    scene->setSceneRect(0,0,600,600);//inti QGraphicsScene
 
     if(g.size()==0){
         QMessageBox::about(0,tr("Warning:"),tr("No Point Information!"));
         return;
     }
     //未选择显示方式
-    if(!ui->addReal->isChecked() && !ui->addResult->isChecked()){//no type
+    if(!ui->addReal->isChecked() && !ui->addResult->isChecked()&& !ui->addLine->isChecked()){//no type
         QMessageBox::about(0,tr("Warning:"),tr("Please Choose Display Type!"));
         return;
     }
@@ -125,47 +134,60 @@ void MainWindow::on_displayButton_clicked()
     vector<double> x, y, cx, cy;
     for(int i = 0; i < g.size(); i ++) {
         Node &p = g.getPoint(i);
-        x.push_back(p.getX() * 2);
-        y.push_back(p.getY() * 2);
-        cx.push_back(p.cx * 2);
-        cy.push_back(p.cy * 2);
+        x.push_back(p.getX() * 3);
+        y.push_back(p.getY() * 3);
+        cx.push_back(p.cx * 3);
+        cy.push_back(p.cy * 3);
     }
+    //只显示线
+    if(!ui->addReal->isChecked() && !ui->addResult->isChecked()&& ui->addLine->isChecked()){
+        addmyLine(cx,cy,x,y,scene);
 
-
-
-    //显示计算结果
-    if(!ui->addReal->isChecked() && ui->addResult->isChecked()){//show the result point
+    }
+    //只显示计算点
+    if(!ui->addReal->isChecked() && ui->addResult->isChecked()&& !ui->addLine->isChecked()){//show the result point
 
         addPoint(cx,cy,scene,pen,brush);
 
+    }
+    //只显示计算点和偏离线
+    if(!ui->addReal->isChecked() && ui->addResult->isChecked()&& ui->addLine->isChecked()){//show the result point
+
+        addPoint(cx,cy,scene,pen,brush);
+        addmyLine(cx,cy,x,y,scene);
 
     }
-    //显示真是点
-    if(ui->addReal->isChecked() && !ui->addResult->isChecked()){//show the real point
-        pen.setColor(Qt::yellow);
+    //显示真实点
+    if(ui->addReal->isChecked() && !ui->addResult->isChecked()&& !ui->addLine->isChecked()){//show the real point
         brush.setColor(Qt::blue);//real point is blue
-
         addPoint(x,y,scene,pen,brush);
 
     }
-    //混合显示
-    if(ui->addReal->isChecked() && ui->addResult->isChecked()){//show both of them
-        pen.setColor(Qt::green);
-        brush.setColor(QColor(0xff,0x00,0x00,0x80));//red
+    //显示真实点和偏离线
+    if(ui->addReal->isChecked() && !ui->addResult->isChecked()&& ui->addLine->isChecked()){//show the real point
+        brush.setColor(Qt::blue);//real point is blue
+        addPoint(x,y,scene,pen,brush);
+        addmyLine(cx,cy,x,y,scene);
 
+    }
+    //混合显示点
+    if(ui->addReal->isChecked() && ui->addResult->isChecked()&& !ui->addLine->isChecked()){//show both of them
+        brush.setColor(QColor(0xff,0x00,0x00,0xd0));//red
         addPoint(cx,cy,scene,pen,brush);
 
-
-        pen.setColor(Qt::yellow);
-        brush.setColor(QColor(0x00,0x00,0xff,0x80));//blue
-
+        brush.setColor(QColor(0x00,0x00,0xff,0xd0));//blue
         addPoint(x,y,scene,pen,brush);
 
     }
+    //混合显示点和线
+    if(ui->addReal->isChecked() && ui->addResult->isChecked()&& ui->addLine->isChecked()){//show both of them
+        brush.setColor(QColor(0xff,0x00,0x00,0xd0));//red
+        addPoint(cx,cy,scene,pen,brush);
 
-//    scene->addLine(0,0,400,400);
-//    scene->addEllipse(0,0,10,10,pen,brush);
-//    scene->addEllipse(390,390,10,10,pen,brush);
+        brush.setColor(QColor(0x00,0x00,0xff,0xd0));//blue
+        addPoint(x,y,scene,pen,brush);
+        addmyLine(cx,cy,x,y,scene);
+    }
 
     ui->graphicsView->setScene(scene);
     ui->graphicsView->show();
@@ -176,9 +198,12 @@ void MainWindow::on_displayButton_clicked()
 //查询传感器点位置事件响应
 void MainWindow::on_QueryButton_clicked()
 {
-    QPen pen(Qt::red);
+
+    QPen pen(Qt::black);
     QBrush brush(QColor(0xff,0xff,0x00,0xff));//result point is red
     QGraphicsScene *scene =  ui->graphicsView->scene();
+
+
     int pointNum;
     vector<double> x, y, cx, cy;
     double diffx,diffy;
@@ -191,7 +216,7 @@ void MainWindow::on_QueryButton_clicked()
     }
 
     pointNum= ui->pointNum->text().toInt();
-    if(pointNum == 0){
+    if(pointNum <= 0 || pointNum >g.size()){
         QMessageBox::about(0,tr("Warning:"),tr("Input Positive Integer!"));
         ui->pointNum->clear();
         return;
@@ -200,10 +225,10 @@ void MainWindow::on_QueryButton_clicked()
     for(int i = 0; i < g.size(); i ++) {
         Node &p = g.getPoint(i);
         if(p.getId() == pointNum -1){
-        x.push_back(p.getX() * 2);
-        y.push_back(p.getY() * 2);
-        cx.push_back(p.cx * 2);
-        cy.push_back(p.cy * 2);
+        x.push_back(p.getX() * 3);
+        y.push_back(p.getY() * 3);
+        cx.push_back(p.cx * 3);
+        cy.push_back(p.cy * 3);
         diffx = abs(p.getX()-p.cx)/p.getX()*100;
         diffy = abs(p.getY()-p.cy)/p.getY()*100;
         }
@@ -217,10 +242,12 @@ void MainWindow::on_QueryButton_clicked()
     ui->offsetY->setText(QString::number(diffy) + "%");
     ui->offsetSum->setText(QString::number(diffsum / 640) + "%");
 
-    addPoint(cx,cy,scene,pen,brush);
+    addPoint(cx,cy,scene,pen,brush);//计算点为黄
 
     brush.setColor(QColor(0x00,0xff,0x00,0xff));
-    addPoint(x,y,scene,pen,brush);
+    addPoint(x,y,scene,pen,brush);//真实点为绿
+    ui->graphicsView->setScene(scene);
+    ui->graphicsView->show();
     cout<<pointNum<<endl;
 }
 
