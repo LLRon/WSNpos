@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>767</width>
-    <height>464</height>
+    <width>1006</width>
+    <height>667</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,17 +22,17 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>410</width>
-      <height>410</height>
+      <width>610</width>
+      <height>610</height>
      </rect>
     </property>
    </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>0</y>
-      <width>341</width>
+      <x>620</x>
+      <y>10</y>
+      <width>380</width>
       <height>411</height>
      </rect>
     </property>
@@ -260,6 +260,13 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
+          <widget class="QCheckBox" name="addReal">
+           <property name="text">
+            <string>Real</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QCheckBox" name="addResult">
            <property name="text">
             <string>Result</string>
@@ -267,9 +274,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="addReal">
+          <widget class="QCheckBox" name="addLine">
            <property name="text">
-            <string>Real</string>
+            <string>Line</string>
            </property>
           </widget>
          </item>
@@ -495,7 +502,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>767</width>
+     <width>1006</width>
      <height>21</height>
     </rect>
    </property>
