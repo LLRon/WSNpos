@@ -90,18 +90,15 @@ GRAPHDLL_API void Graph::shortestPath_Floyd()
 		}
 	}
 
-	for (auto &k : points)
+	for (int k = 0; k < points.size(); k ++)
 	{
-		int kid = k.getId();
-		for (auto &v : points)
+		for (int i = 0; i < points.size(); i++)
 		{
-			int vid = v.getId();
-			for (auto &w : points)
+			for (int j = 0; j < points.size(); j++)
 			{
-				int wid = w.getId();
-				if (minimumPathLength[vid][wid] > minimumPathLength[vid][kid] + minimumPathLength[kid][wid])
+				if (minimumPathLength[i][j] > minimumPathLength[i][k] + minimumPathLength[k][j])
 				{
-					minimumPathLength[vid][wid] = minimumPathLength[vid][kid] + minimumPathLength[kid][wid];
+					minimumPathLength[i][j] = minimumPathLength[i][k] + minimumPathLength[k][j];
 				}
 			}
 		}
@@ -165,7 +162,7 @@ GRAPHDLL_API Vector2d calculatePoint(Node &node, vector<Node*> anchors) {
 	auto p1 = *anchors.begin();
 	x1 = p1->getX();
 	y1 = p1->getY();
-	d1 = node.neighbourDistance[p1->getId()];
+	d1 = node.distanceToLandmarks.at(p1->getId());
 
 	// for matrix b
 	double fixed = d1 * d1 - x1 * x1 - y1* y1;
@@ -190,7 +187,7 @@ GRAPHDLL_API Vector2d calculatePoint(Node &node, vector<Node*> anchors) {
 			continue;
 		}
 
-		double d = node.neighbourDistance[(*it)->getId()];
+		double d = node.distanceToLandmarks.at((*it)->getId());
 		auto node = (*it);
 
 		b(i) = d * d - node->getX() * node->getX() -
@@ -222,11 +219,12 @@ GRAPHDLL_API void recursiveTri(Graph &graph) {
 		for (auto it = node->neighbourDistance.cbegin();
 			it != node->neighbourDistance.cend(); it++) {
 			if (graph.points[it->first].isAnchor) {
+				node->distanceToLandmarks[it->first] = it->second;
 				anchors.push_back(&graph.points[it->first]);
 			}
 		}
 
-		if (anchors.size() < 3) {
+		if (node->distanceToLandmarks.size() < 3) {
 			tobeCal.push(node);
 			continue;
 		}
@@ -278,7 +276,6 @@ GRAPHDLL_API void dvhop(Graph &graph) {
 			continue;
 		}
 
-		// test
 		decltype(anchors[0]) min = anchors[0];
 
 		for (auto &anchor : anchors) {
@@ -290,10 +287,8 @@ GRAPHDLL_API void dvhop(Graph &graph) {
 
 		p.correction = min->correction;
 
-		p.neighbourDistance.clear();
-
 		for (auto &anchor : anchors) {
-			p.addNeighbour(*anchor, p.correction * graph.minimumPathLength[p.getId()][anchor->getId()]);
+			p.distanceToLandmarks[anchor->getId()] = graph.minimumPathLength[p.getId()][anchor->getId()] * p.correction;
 		}
 
 		auto ret = calculatePoint(p, anchors);
@@ -360,10 +355,9 @@ GRAPHDLL_API void pdm(Graph &graph)
 
 		VectorXd geography = T * proximity;
 
-		p.neighbourDistance.clear();
-
 		for (int i = 0; i < anchors.size(); i++) {
-			p.addNeighbour(*anchors[i], geography(i));
+			//p.addNeighbour(*anchors[i], geography(i));
+			p.distanceToLandmarks[anchors[i]->getId()] = geography(i);
 		}
 
 		auto ret = calculatePoint(p, anchors);

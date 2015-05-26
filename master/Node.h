@@ -36,6 +36,9 @@ public:
 	// average hop from node to landmark
 	double correction;
 
+	// distance to landmarks
+	std::map<int, double> distanceToLandmarks;
+
 	void displayDifference(std::ostream &);
 
 private:
@@ -45,6 +48,6 @@ private:
 	int id;
 	double x;
 	double y;
-
+	
 	friend class Graph;
 };

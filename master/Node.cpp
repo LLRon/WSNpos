@@ -52,6 +52,7 @@ double Node::getX() const
 void Node::displayDifference(std::ostream &os)
 {
 	os << setprecision(6);
+	os << "point: " << id << "\n";
 	os << "diff: (" << abs(cx - x) / x * 100 << "%, " << abs(cy - y) / y * 100 << "%)" << "\n";
 	os << "cal:  (" << cx << ", " << cy << ")" << "\n";
 	os << "real: (" << x << ", " << y << ")" << endl;

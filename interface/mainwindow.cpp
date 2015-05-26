@@ -152,7 +152,7 @@ void MainWindow::on_displayButton_clicked()
             Node &q = g.getPoint(i);
             for(auto &it : q.neighbourDistance){
                 Node &p = g.getPoint(it.first);
-                QPen pen_1(QColor(0xe1,0xaa,0xaa,0xff));
+                QPen pen_1(QColor(0xe1,0xaa,0xaa,0x22));
                 scene->addLine(q.cx*3,q.cy*3,p.cx*3,p.cy*3,pen_1);
             }
         }
@@ -174,7 +174,7 @@ void MainWindow::on_displayButton_clicked()
             Node &q = g.getPoint(i);
             for(auto &it : q.neighbourDistance){
                 Node &p = g.getPoint(it.first);
-                QPen pen_1(QColor(0xaa,0xaa,0xe1,0xff));
+                QPen pen_1(QColor(0xaa,0xaa,0xe1,0x22));
                 scene->addLine(q.getX()*3,q.getY()*3,p.getX()*3,p.getY()*3,pen_1);
             }
         }
@@ -194,7 +194,7 @@ void MainWindow::on_displayButton_clicked()
             Node &q = g.getPoint(i);
             for(auto &it : q.neighbourDistance){
                 Node &p = g.getPoint(it.first);
-                QPen pen_1(QColor(0xe1,0xaa,0xaa,0xff));
+                QPen pen_1(QColor(0xe1,0xaa,0xaa,0x22));
                 scene->addLine(q.cx*3,q.cy*3,p.cx*3,p.cy*3,pen_1);
             }
         }
@@ -203,7 +203,7 @@ void MainWindow::on_displayButton_clicked()
             Node &q = g.getPoint(i);
             for(auto &it : q.neighbourDistance){
                 Node &p = g.getPoint(it.first);
-                QPen pen_1(QColor(0xaa,0xaa,0xe1,0xff));
+                QPen pen_1(QColor(0xaa,0xaa,0xe1,0x22));
                 scene->addLine(q.getX()*3,q.getY()*3,p.getX()*3,p.getY()*3,pen_1);
             }
         }
