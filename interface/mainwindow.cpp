@@ -22,6 +22,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+//    QPen tippen(Qt::black);
+//    QBrush tipbrush(Qt::red);
+//    QGraphicsScene *tip = new QGraphicsScene();
+//    tip->setSceneRect(0,0,371,42);
+//    tip->addEllipse(0,0,10,10,tippen,tipbrush);
+//    tip->addText("Result");
+//    ui->graphicsView_2->setScene(tip);
+//    ui->graphicsView_2->show();
 }
 
 MainWindow::~MainWindow()
@@ -260,10 +268,10 @@ void MainWindow::on_QueryButton_clicked()
         }
         diffsum += abs(p.getX()-p.cx)/p.getX()*100 + abs(p.getY()-p.cy)/p.getY()*100;
     }
-    ui->resultX->setText(QString::number(cx[0]));
-    ui->resultY->setText(QString::number(cy[0]));
-    ui->realX->setText(QString::number(x[0]));
-    ui->realY->setText(QString::number(y[0]));
+    ui->resultX->setText(QString::number(cx[0]/3));
+    ui->resultY->setText(QString::number(cy[0]/3));
+    ui->realX->setText(QString::number(x[0]/3));
+    ui->realY->setText(QString::number(y[0]/3));
     ui->offsetX->setText(QString::number(diffx) + "%");
     ui->offsetY->setText(QString::number(diffy) + "%");
     ui->offsetSum->setText(QString::number(diffsum / 640) + "%");
