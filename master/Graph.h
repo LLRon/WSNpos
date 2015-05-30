@@ -27,10 +27,10 @@ class Graph
 	GRAPHDLL_API friend void pdm(Graph &);
 	GRAPHDLL_API friend void recursiveTri(Graph &);
 	GRAPHDLL_API friend void dvhop(Graph &);
+	GRAPHDLL_API friend void mds(Graph &);
 public:
 	GRAPHDLL_API Graph();
 	GRAPHDLL_API ~Graph();
-	GRAPHDLL_API Graph(Graph &);
 
 	GRAPHDLL_API Node& getPoint(int id);
 
@@ -66,3 +66,4 @@ GRAPHDLL_API void bfs(Graph &graph, function<void(const Node&)> &task);
 GRAPHDLL_API void recursiveTri(Graph &);
 GRAPHDLL_API void dvhop(Graph &);
 GRAPHDLL_API void pdm(Graph &);
+GRAPHDLL_API void mds(Graph &);

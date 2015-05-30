@@ -14,7 +14,6 @@ class GRAPHDLL_API Node
 public:
 	Node();
 	Node(int id, double x, double y);
-	Node(const Node&);
 	~Node();
 
 	//  add a neighbor to current point
@@ -26,6 +25,7 @@ public:
 	double getY() const;
 
 	bool isAnchor;
+	bool isPseudoAnchor;
 
 	std::map<int, double> neighbourDistance;
 

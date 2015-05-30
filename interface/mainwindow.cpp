@@ -103,7 +103,8 @@ void MainWindow::on_selectAlgorithmButton_clicked()
     }
     //选择MDS
     if(ui->MDSButton->isChecked()){
-
+        mds(g);
+        QMessageBox::about(0,tr("MDS:"),tr("Finish!"));
     }
     //选择DV_HOP
     if(ui->DV_HOPButton->isChecked()){
@@ -251,12 +252,12 @@ void MainWindow::on_QueryButton_clicked()
     for(int i = 0; i < g.size(); i ++) {
         Node &p = g.getPoint(i);
         if(p.getId() == pointNum -1){
-        x.push_back(p.getX() * 3);
-        y.push_back(p.getY() * 3);
-        cx.push_back(p.cx * 3);
-        cy.push_back(p.cy * 3);
-        diffx = abs(p.getX()-p.cx)/p.getX()*100;
-        diffy = abs(p.getY()-p.cy)/p.getY()*100;
+            x.push_back(p.getX());
+            y.push_back(p.getY());
+            cx.push_back(p.cx);
+            cy.push_back(p.cy);
+            diffx = abs(p.getX()-p.cx)/p.getX()*100;
+            diffy = abs(p.getY()-p.cy)/p.getY()*100;
         }
         diffsum += abs(p.getX()-p.cx)/p.getX()*100 + abs(p.getY()-p.cy)/p.getY()*100;
     }
@@ -266,7 +267,7 @@ void MainWindow::on_QueryButton_clicked()
     ui->realY->setText(QString::number(y[0]));
     ui->offsetX->setText(QString::number(diffx) + "%");
     ui->offsetY->setText(QString::number(diffy) + "%");
-    ui->offsetSum->setText(QString::number(diffsum / 640) + "%");
+    ui->offsetSum->setText(QString::number(diffsum / g.size() / 2) + "%");
 
     addPoint(cx,cy,scene,pen,brush);//计算点为黄
 

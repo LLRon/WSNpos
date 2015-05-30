@@ -7,19 +7,6 @@ Node::Node(int id, double x, double y):id(id), x(x), y(y)
 {
 }
 
-// copy constructor
-Node::Node(const Node &node) {
-
-	id = node.id;
-	x = node.x;
-	y = node.y;
-	cx = node.cx;
-	cy = node.cy;
-	isAnchor = node.isAnchor;
-	neighbourDistance = node.neighbourDistance;
-}
-
-
 Node::~Node()
 {
 }

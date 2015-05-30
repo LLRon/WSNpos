@@ -4,13 +4,13 @@
 #include <limits>
 #include <queue>
 #include <iostream>
+#include <unsupported/Eigen/MatrixFunctions>
 
 vector<string> getValues(const string &data);
 
 Graph::Graph()
 {
 }
-
 
 Graph::~Graph()
 {
@@ -24,9 +24,12 @@ void Graph::buildNode(const string &data)
 	p.name = stoi(values[0]);
 	p.x = stod(values[1]);
 	p.y = stod(values[2]);
-	p.cx = p.x;
-	p.cy = p.y;
+
 	p.isAnchor = values[3] == "1";
+	p.isPseudoAnchor = false;
+
+	p.cx = numeric_limits<double>::max();
+	p.cy = p.cx;
 
 	points.push_back(p);
 	// id is it's index
@@ -90,7 +93,7 @@ GRAPHDLL_API void Graph::shortestPath_Floyd()
 		}
 	}
 
-	for (int k = 0; k < points.size(); k ++)
+	for (int k = 0; k < points.size(); k++)
 	{
 		for (int i = 0; i < points.size(); i++)
 		{
@@ -104,7 +107,6 @@ GRAPHDLL_API void Graph::shortestPath_Floyd()
 		}
 	}
 }
-
 
 GRAPHDLL_API void Graph::shortestPath_Dijest()
 {
@@ -148,11 +150,9 @@ GRAPHDLL_API Node& Graph::getPoint(int id)
 	}
 }
 
-
 GRAPHDLL_API Vector2d trilateration(Matrix<double, Dynamic, 2> &a, VectorXd &b) {
 	return (a.transpose() * a).inverse() * a.transpose() * b;
 }
-
 
 // solving matrix equation: Ax = b
 GRAPHDLL_API Vector2d calculatePoint(Node &node, vector<Node*> anchors) {
@@ -217,8 +217,8 @@ GRAPHDLL_API void recursiveTri(Graph &graph) {
 		vector<Node *> anchors;
 
 		for (auto it = node->neighbourDistance.cbegin();
-			it != node->neighbourDistance.cend(); it++) {
-			if (graph.points[it->first].isAnchor) {
+		it != node->neighbourDistance.cend(); it++) {
+			if (graph.points[it->first].isAnchor || graph.points[it->first].isPseudoAnchor) {
 				node->distanceToLandmarks[it->first] = it->second;
 				anchors.push_back(&graph.points[it->first]);
 			}
@@ -234,12 +234,11 @@ GRAPHDLL_API void recursiveTri(Graph &graph) {
 		node->cx = ret(0);
 		node->cy = ret(1);
 
-		node->isAnchor = true;
+		node->isPseudoAnchor = true;
 	}
 }
 
 GRAPHDLL_API void dvhop(Graph &graph) {
-
 	vector<Node *> anchors;
 
 	// find out all the landmarks
@@ -255,12 +254,11 @@ GRAPHDLL_API void dvhop(Graph &graph) {
 			hopSum = 0;
 
 		for (auto &landmark : anchors) {
-
 			if (anchor != landmark) {
 				double dx = (anchor->getX() - landmark->getX()),
 					dy = (anchor->getY() - landmark->getY());
 
-				distSum += sqrtl(dx*dx + dy*dy);
+				distSum += sqrt(dx*dx + dy*dy);
 				hopSum += graph.minimumPathLength[anchor->getId()][landmark->getId()];
 			}
 		}
@@ -271,13 +269,13 @@ GRAPHDLL_API void dvhop(Graph &graph) {
 	// determine the correction of regular point
 	// to be its nearest landmark's correction
 	for (auto &p : graph.points) {
-
 		if (p.isAnchor) {
 			continue;
 		}
 
 		decltype(anchors[0]) min = anchors[0];
 
+		// find the nearest anchor
 		for (auto &anchor : anchors) {
 			if (graph.minimumPathLength[p.getId()][anchor->getId()] <
 				graph.minimumPathLength[p.getId()][min->getId()]) {
@@ -300,7 +298,6 @@ GRAPHDLL_API void dvhop(Graph &graph) {
 
 GRAPHDLL_API void pdm(Graph &graph)
 {
-
 	vector<Node *> anchors;
 
 	// find out all the landmarks
@@ -309,18 +306,16 @@ GRAPHDLL_API void pdm(Graph &graph)
 			anchors.push_back(&p);
 		}
 	}
-	
+
 	// P is the proximity matrix and
 	// T is the geographic matrix
 	MatrixXd P(anchors.size(), anchors.size());
 	MatrixXd L(anchors.size(), anchors.size());
 
-
 	// calculate the correction of landmarks
-	for (int i = 0; i < anchors.size(); i ++) {
+	for (int i = 0; i < anchors.size(); i++) {
 		auto &a1 = anchors[i];
 		for (int j = 0; j < anchors.size(); j++) {
-
 			auto &a2 = anchors[j];
 
 			if (a1 != a2) {
@@ -340,17 +335,16 @@ GRAPHDLL_API void pdm(Graph &graph)
 	}
 
 	MatrixXd T = (P.jacobiSvd(ComputeThinU | ComputeThinV).solve(L.transpose())).transpose();
-	
-	for (auto &p : graph.points) {
 
+	for (auto &p : graph.points) {
 		if (p.isAnchor) {
 			continue;
 		}
 
 		VectorXd proximity(anchors.size());
 
-		for (int i = 0; i < anchors.size(); i ++) {
-			proximity(i) = graph.minimumPathLength[p.getId ()][anchors[i]->getId ()];
+		for (int i = 0; i < anchors.size(); i++) {
+			proximity(i) = graph.minimumPathLength[p.getId()][anchors[i]->getId()];
 		}
 
 		VectorXd geography = T * proximity;
@@ -364,5 +358,103 @@ GRAPHDLL_API void pdm(Graph &graph)
 
 		p.cx = ret(0);
 		p.cy = ret(1);
+	}
+}
+
+/*calculate the x(i, j)^2 / (n* m) where x is a nxm matrix*/
+double qudraticMean(const MatrixXd &mat) {
+	double ret = 0;
+	int cols = mat.cols(), rows = mat.rows();
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			ret += mat(i, j) * mat(i, j);
+		}
+	}
+	return ret / cols / rows;
+}
+
+MatrixXd doubleCenter(MatrixXd &mat) {
+	if (mat.rows() != mat.cols()) {
+		throw runtime_error("Can't double center non-square matrix");
+	}
+
+	size_t n = mat.rows();
+	MatrixXd ret(n, n);
+
+	double means = qudraticMean(mat);
+
+	for (size_t i = 0; i < n; ++i) {
+		for (size_t j = 0; j < n; ++j) {
+			ret(i, j) = -(mat(i, j)*mat(i, j) - qudraticMean(mat.row(i)) - qudraticMean(mat.col(j)) + means) / 2;
+		}
+	}
+
+	return ret;
+}
+
+GRAPHDLL_API void mds(Graph &graph)
+{
+	MatrixXd P(graph.minimumPathLength.size(), graph.minimumPathLength.size());
+
+	for (size_t i = 0, n = P.rows(); i < n; ++i) {
+		for (size_t j = 0; j < n; ++j) {
+			P(i, j) = graph.minimumPathLength[i][j];
+		}
+	}
+
+	vector<int> anchors;
+
+	// find out all the landmarks
+	for (auto &p : graph.points) {
+		if (p.isAnchor) {
+			anchors.push_back(p.getId());
+		}
+	}
+	cout << "doublecenter start" << endl;
+	// double centered matrix
+	MatrixXd B = doubleCenter(P);
+
+	cout << "doublecenter end" << endl;
+
+	// singular value decomposition
+	cout << "svd start" << endl;
+	JacobiSVD<MatrixXd> svd(B, ComputeFullU | ComputeThinV);
+
+	// picking r=2 largest singular value because we are
+	// computing in a 2D space
+	auto singulars = svd.singularValues();
+	MatrixXd U(P.rows(), 2), V(2, 2);
+	U.col(0) = svd.matrixU().col(0);
+	U.col(1) = svd.matrixU().col(1);
+
+	V << singulars(0), 0, 0, singulars(1);
+
+	cout << "svd end" << endl;
+
+	// compute back to the coordinates matrix
+	MatrixXd X = U * V.sqrt();
+
+	// convert relative coordinate to absolute coordinate
+	// using transformation computing through anchors
+	MatrixXd anchorRel(anchors.size(), 3),
+		anchorAbs(anchors.size(), 2);
+
+	for (size_t i = 0; i < anchors.size(); ++i) {
+		anchorRel(i, 0) = 1;
+		anchorRel(i, 1) = X(anchors[i], 0);
+		anchorRel(i, 2) = X(anchors[i], 1);
+		anchorAbs(i, 0) = graph.getPoint(anchors[i]).getX();
+		anchorAbs(i, 1) = graph.getPoint(anchors[i]).getY();
+	}
+	cout << "anchor svd start" << endl;
+	MatrixXd T = anchorRel.jacobiSvd(ComputeThinU | ComputeThinV).solve(anchorAbs);
+	cout << "anchor svd end" << endl;
+
+	VectorXd temp(3);
+	for (int i = 0; i < graph.size(); i++) {
+		temp << 1,X(i, 0),X(i, 1);
+		const MatrixXd &ret = temp.transpose() *T;
+		graph.getPoint(i).cx = ret(0);
+		graph.getPoint(i).cy = ret(1);
 	}
 }
