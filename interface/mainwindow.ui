@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1006</width>
-    <height>667</height>
+    <width>1007</width>
+    <height>663</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,7 +33,7 @@
       <x>620</x>
       <y>10</y>
       <width>380</width>
-      <height>411</height>
+      <height>449</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -147,13 +147,6 @@
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="2">
-            <widget class="QRadioButton" name="MDSButton">
-             <property name="text">
-              <string>MDS</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
             <widget class="QRadioButton" name="recursiveButton">
              <property name="sizePolicy">
@@ -184,6 +177,13 @@
             <widget class="QRadioButton" name="DV_HOPButton">
              <property name="text">
               <string>DV-HOP</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QRadioButton" name="MDSButton">
+             <property name="text">
+              <string>MDS</string>
              </property>
             </widget>
            </item>
@@ -260,16 +260,22 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QCheckBox" name="addReal">
+          <widget class="QCheckBox" name="addResult">
+           <property name="styleSheet">
+            <string notr="true">color: rgb(255, 0, 0);</string>
+           </property>
            <property name="text">
-            <string>Real</string>
+            <string>Result</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="addResult">
+          <widget class="QCheckBox" name="addReal">
+           <property name="styleSheet">
+            <string notr="true">color: rgb(0, 0, 255);</string>
+           </property>
            <property name="text">
-            <string>Result</string>
+            <string>Real</string>
            </property>
           </widget>
          </item>
@@ -394,6 +400,9 @@
        </item>
        <item row="0" column="2">
         <widget class="QLabel" name="label_5">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(0, 255, 0);</string>
+         </property>
          <property name="text">
           <string>Real:</string>
          </property>
@@ -434,6 +443,9 @@
        </item>
        <item row="0" column="1">
         <widget class="QLabel" name="label_4">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(255, 255, 0);</string>
+         </property>
          <property name="text">
           <string>Result:</string>
          </property>
@@ -502,7 +514,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1006</width>
+     <width>1007</width>
      <height>21</height>
     </rect>
    </property>
