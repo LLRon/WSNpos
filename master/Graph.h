@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <Eigen/dense>
 #include <functional>
+#include <ctime>
+#include <iostream>
 
 #ifdef GRAPHDLL_EXPORTS
 #define GRAPHDLL_API __declspec(dllexport) 
@@ -16,8 +18,6 @@
 
 using namespace Eigen;
 using namespace std;
-
-class Node;
 
 class Graph
 {
@@ -61,9 +61,11 @@ private:
 };
 
 GRAPHDLL_API Vector2d trilateration(Matrix<double, Dynamic, 2> &a, VectorXd &b);
-GRAPHDLL_API Vector2d calculatePoint(Node &node, vector<Node*> anchors);
+GRAPHDLL_API Vector2d calculatePoint(Node &node, vector<Node*> anchors, int);
 GRAPHDLL_API void bfs(Graph &graph, function<void(const Node&)> &task);
 GRAPHDLL_API void recursiveTri(Graph &);
 GRAPHDLL_API void dvhop(Graph &);
 GRAPHDLL_API void pdm(Graph &);
 GRAPHDLL_API void mds(Graph &);
+
+GRAPHDLL_API void mytest(int);

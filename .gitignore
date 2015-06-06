@@ -6,6 +6,7 @@ x64/
 master/Debug/
 master/x64/
 build-WSNPos-Desktop_Qt_5_4_1_MSVC2012_OpenGL_32bit-Debug/
+build-WSNPos-Desktop_Qt_5_4_1_MSVC2013_64bit-Release/
 Sensor_Locating.opensdf
 Debug/
 .vs/

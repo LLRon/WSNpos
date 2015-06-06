@@ -1,6 +1,5 @@
 #pragma once
 #include <map>
-#include "Graph.h"
 #include <ostream>
 
 #ifdef GRAPHDLL_EXPORTS
@@ -9,20 +8,21 @@
 #define GRAPHDLL_API __declspec(dllimport) 
 #endif
 
-class GRAPHDLL_API Node
+class Node
 {
 public:
-	Node();
-	Node(int id, double x, double y);
-	~Node();
+	GRAPHDLL_API Node();
+	GRAPHDLL_API ~Node();
 
 	//  add a neighbor to current point
 	void addNeighbour(Node &p, double dist);
 	bool operator<(Node) const;
 
-	int getId() const;
-	double getX() const;
-	double getY() const;
+	GRAPHDLL_API int getId() const;
+	GRAPHDLL_API double getX() const;
+	GRAPHDLL_API double getY() const;
+	GRAPHDLL_API double getCx() const;
+	GRAPHDLL_API double getCy() const;
 
 	bool isAnchor;
 	bool isPseudoAnchor;
@@ -39,7 +39,15 @@ public:
 	// distance to landmarks
 	std::map<int, double> distanceToLandmarks;
 
-	void displayDifference(std::ostream &);
+	GRAPHDLL_API void displayDifference(std::ostream &);
+	GRAPHDLL_API double Node::diffPer() const
+	{
+		return (abs(cx - getX()) / getX() + abs(cy - getY()) / getY()) / 2;
+	}
+	GRAPHDLL_API double Node::diffDist() const
+	{
+		return sqrt((cx - getX())*(cx - getX()) + (cy - getY())*(cy - getY()));
+	}
 
 private:
 

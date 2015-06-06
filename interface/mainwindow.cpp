@@ -31,6 +31,10 @@ MainWindow::MainWindow(QWidget *parent) :
 //    ui->graphicsView_2->setScene(tip);
 //    ui->graphicsView_2->show();
 }
+template<typename T> bool isvalid(T a) {
+    return a < 10000000;
+}
+
 
 MainWindow::~MainWindow()
 {
@@ -42,7 +46,8 @@ void addPoint(const vector<double> &x, const vector<double> &y,QGraphicsScene *t
 
 
     for(int i = 0;i < x.size() ;i++){
-        tempScene->addEllipse(x[i]-5,y[i]-5,10,10,pen,brush);
+        if (isvalid(x[i]) && isvalid(y[i]))
+            tempScene->addEllipse(x[i]-5,y[i]-5,10,10,pen,brush);
     }
 
 }
@@ -52,7 +57,8 @@ void addmyLine(const vector<double> &cx, const vector<double> &cy,const vector<d
     QPen pen(Qt::black);
     pen.setWidth(1);
     for(int i = 0;i < x.size() ;i++){
-        tempScene->addLine(cx[i],cy[i],x[i],y[i],pen);
+        if (isvalid(cx[i]) && isvalid(cy[i]))
+            tempScene->addLine(cx[i],cy[i],x[i],y[i],pen);
     }
 }
 
@@ -77,7 +83,7 @@ void MainWindow::on_buildGraph_clicked()
 {
     ifstream a(sourcePath_1.toStdString());
     ifstream b(sourcePath_2.toStdString());
-
+    origin = Graph();
     origin.buildFromFile(a,b);
     origin.shortestPath_Floyd();
 
@@ -159,14 +165,18 @@ void MainWindow::on_displayButton_clicked()
         //显示连通线
         for(int i = 0;i < g.size();i++){
             Node &q = g.getPoint(i);
-            for(auto &it : q.neighbourDistance){
-                Node &p = g.getPoint(it.first);
-                QPen pen_1(QColor(0xe1,0xaa,0xaa,0x22));
-                scene->addLine(q.cx*3,q.cy*3,p.cx*3,p.cy*3,pen_1);
-            }
+            if (isvalid(q.cx))
+                for(auto &it : q.neighbourDistance){
+                    Node &p = g.getPoint(it.first);
+                    if (isvalid(p.cx)) {
+                        QPen pen_1(QColor(0xe1,0xaa,0xaa,0x22));
+                        scene->addLine(q.cx*3,q.cy*3,p.cx*3,p.cy*3,pen_1);
+                    }
+                }
         }
         //显示计算点
         addPoint(cx,cy,scene,pen,brush);
+
         //显示偏离线
         if(ui->addLine->isChecked()){
             addmyLine(cx,cy,x,y,scene);
@@ -181,10 +191,13 @@ void MainWindow::on_displayButton_clicked()
         //显示连通线
         for(int i = 0;i < g.size();i++){
             Node &q = g.getPoint(i);
+            if (isvalid(q.cx))
             for(auto &it : q.neighbourDistance){
                 Node &p = g.getPoint(it.first);
-                QPen pen_1(QColor(0xaa,0xaa,0xe1,0x22));
-                scene->addLine(q.getX()*3,q.getY()*3,p.getX()*3,p.getY()*3,pen_1);
+                if (isvalid(p.cx)) {
+                    QPen pen_1(QColor(0xe1,0xaa,0xaa,0x22));
+                    scene->addLine(q.cx*3,q.cy*3,p.cx*3,p.cy*3,pen_1);
+                }
             }
         }
         //显示真实点
@@ -201,11 +214,14 @@ void MainWindow::on_displayButton_clicked()
         //计算点显示连通线
         for(int i = 0;i < g.size();i++){
             Node &q = g.getPoint(i);
-            for(auto &it : q.neighbourDistance){
-                Node &p = g.getPoint(it.first);
-                QPen pen_1(QColor(0xe1,0xaa,0xaa,0x22));
-                scene->addLine(q.cx*3,q.cy*3,p.cx*3,p.cy*3,pen_1);
-            }
+            if (isvalid(q.cx))
+                for(auto &it : q.neighbourDistance){
+                    Node &p = g.getPoint(it.first);
+                    if (isvalid(p.cx)) {
+                        QPen pen_1(QColor(0xe1,0xaa,0xaa,0x22));
+                        scene->addLine(q.cx*3,q.cy*3,p.cx*3,p.cy*3,pen_1);
+                    }
+                }
         }
         //显示真实点连通线
         for(int i = 0;i < g.size();i++){
@@ -224,7 +240,7 @@ void MainWindow::on_displayButton_clicked()
         addPoint(x,y,scene,pen,brush);
         //显示偏离线
         if(ui->addLine->isChecked()){
-           addmyLine(cx,cy,x,y,scene);
+            addmyLine(cx,cy,x,y,scene);
         }
     }
     ui->graphicsView->setScene(scene);
@@ -257,25 +273,30 @@ void MainWindow::on_QueryButton_clicked()
         return;
     }
 
+    int count = 0;
+
     for(int i = 0; i < g.size(); i ++) {
         Node &p = g.getPoint(i);
-        if(p.getId() == pointNum -1){
-            x.push_back(p.getX());
-            y.push_back(p.getY());
-            cx.push_back(p.cx);
-            cy.push_back(p.cy);
-            diffx = abs(p.getX()-p.cx)/p.getX()*100;
-            diffy = abs(p.getY()-p.cy)/p.getY()*100;
+        if(p.getId() == pointNum - 1){
+            x.push_back(p.getX() * 3);
+            y.push_back(p.getY() * 3);
+            cx.push_back(p.cx * 3);
+            cy.push_back(p.cy * 3);
+            diffx = abs(p.getX()-p.cx);
+            diffy = abs(p.getY()-p.cy);
         }
-        diffsum += abs(p.getX()-p.cx)/p.getX()*100 + abs(p.getY()-p.cy)/p.getY()*100;
+        if (isvalid(p.cx) && !p.isAnchor) {
+            ++ count;
+            diffsum += p.diffDist();
+        }
     }
     ui->resultX->setText(QString::number(cx[0]/3));
     ui->resultY->setText(QString::number(cy[0]/3));
     ui->realX->setText(QString::number(x[0]/3));
     ui->realY->setText(QString::number(y[0]/3));
-    ui->offsetX->setText(QString::number(diffx) + "%");
-    ui->offsetY->setText(QString::number(diffy) + "%");
-    ui->offsetSum->setText(QString::number(diffsum / g.size() / 2) + "%");
+    ui->offsetX->setText(QString::number(diffx));
+    ui->offsetY->setText(QString::number(diffy));
+    ui->offsetSum->setText(QString::number(diffsum / count));
 
     addPoint(cx,cy,scene,pen,brush);//计算点为黄
 
